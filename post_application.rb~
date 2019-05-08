@@ -1,0 +1,64 @@
+# coding: utf-8
+require 'dotenv'
+require 'spreadsheet'
+require 'selenium-webdriver'
+require 'chromedriver-helper'
+# とりあえず.envは読み込んどく
+Dotenv.load
+p ENV["ID"]
+# webdriverの条件
+options = Selenium::WebDriver::Chrome::Options.new
+options.add_argument('--headless')
+driver = Selenium::WebDriver.for :chrome, options: options
+wait = Selenium::WebDriver::Wait.new(:timeout => 30)
+
+# 準備
+# 自分で大きさ決めてみる
+page_width = 1000
+page_height = 1500
+driver.manage.window.resize_to(page_width, page_height)
+# ログイン画面のURL
+LOGIN_URL = 'https://event.shoeisha.jp/order/apply/235/'
+driver.navigate.to LOGIN_URL
+# 確認確認
+driver.save_screenshot './se_event_1.png'
+
+# ログインじゃ
+wait.until {driver.find_element(:name, 'login').displayed?} # ログインボタンが表示されるまで待ちます
+mail_address = driver.find_element(:name, 'email')
+password = driver.find_element(:name, 'login_password')
+mail_address.send_keys(ENV['ID'])
+password.send_keys(ENV['PASS'])
+# また確認
+driver.save_screenshot './se_event_2.png'
+# サブミット
+driver.find_element(:name, 'login').click
+# 縦に長かった
+page_height = 2500
+driver.manage.window.resize_to(page_width, page_height)
+# しつこいけど確認
+driver.save_screenshot './se_event_3.png'
+
+# 入力するぞ
+# 次へのボタンがstep1って名前でした。なんで？
+wait.until {driver.find_element(:name, 'step1').displayed?}
+# 次々入れていきます
+driver.find_element(:name, 'family_name').send_keys(ENV['FAMILY_NAME'])
+driver.find_element(:name, 'given_name').send_keys(ENV['GIVEN_NAME'])
+driver.find_element(:name, 'family_name_kana').send_keys(ENV['FAMILY_NAME_KANA'])
+driver.find_element(:name, 'given_name_kana').send_keys(ENV['GIVEN_NAME_KANA'])
+driver.find_element(:name, 'company_name').send_keys(ENV['COMPANY_NAME'])
+driver.find_element(:name, 'company_dept').send_keys(ENV['COMPANY_DEPT'])
+
+
+
+# チェックは外します
+if driver.find_element(:id, 'se-profile-action').selected? # チェックされてたらuncheckするよ？
+  driver.find_element(:id, 'se-profile-action').click
+end
+# ここでも確認
+driver.save_screenshot './se_event_4.png'
+
+
+
+
